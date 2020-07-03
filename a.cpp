@@ -179,6 +179,13 @@ Schedule greedy_initialize() {
     return ret;
 }
 
+Schedule periodic_initialize(Int offset = 0) {
+    Schedule ret;
+    REP(d, D) ret.a[d] = (d + offset) % K;
+    ret.score = ret.calc_score();
+    return ret;
+}
+
 template <class State, bool use_dif = true> struct Annealing {
     constexpr static Int INF = 1e9;
     State cur;
@@ -256,14 +263,22 @@ Int solve() {
     REP(i, D) REP(j, K) std::cin >> s[i][j];
 
     // local search
-    Annealing<ScheduleDif, true> an(greedy_initialize(), 1500, 10);
-    std::cerr << an.run(TIME_LIMIT - timer()) << " iterations\n";
+    double rem_time = TIME_LIMIT - timer();
+    constexpr Int annealing_num = 1;
+    Int ma = -1e9;
+    ScheduleDif ans;
+    REP(x, annealing_num) {
+        Annealing<ScheduleDif, true> an(x == 0 ? greedy_initialize() : periodic_initialize(x), 1500, 10);
+        std::cerr << an.run(rem_time / annealing_num) << " iterations\n";
+        assert(an.cur.score == an.cur.calc_score());
+        if (chmax(ma, an.cur.score)) ans = std::move(an.cur);
+    }
 
     // output
-    for (Int x : an.cur.a) std::cout << x + 1 << "\n";
+    for (Int x : ans.a) std::cout << x + 1 << "\n";
     std::cout << std::endl;
-    dump(an.cur.score);
-    return an.cur.score + (Int)1e6;
+    dump(ans.score);
+    return ans.score + (Int)1e6;
 }
 
 signed main() {
