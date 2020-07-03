@@ -191,7 +191,7 @@ template <class State, bool use_dif = true> struct Annealing {
         return is_update;
     }
     bool update_by_dif(double cur_time, double time_lim) {
-        if (rnd() % 2 == 0) {
+        if (rnd() % 3 == 0) {
             // change 1 day
             Int d = rnd() % D, k = rnd() % K;
             while (k == cur.a[d]) k = rnd() % K;
@@ -204,7 +204,7 @@ template <class State, bool use_dif = true> struct Annealing {
             return is_update;
         } else {
             // swap 2 days
-            Int dif = rnd() % 15 + 1;
+            Int dif = rnd() % 10 + 1;
             Int d1 = rnd() % (D - dif), d2 = d1 + dif;
             while (cur.a[d1] == cur.a[d2]) dif = rnd() % 15 + 1, d1 = rnd() % (D - dif), d2 = d1 + dif;
             Int score_dif = cur.score_dif_swap(d1, d2);
@@ -250,7 +250,7 @@ Int solve() {
     Int ma = -1e9;
     ScheduleDif ans;
     REP(x, annealing_num) {
-        Annealing<ScheduleDif, true> an(x == 0 ? greedy_initialize() : periodic_initialize(x), 1500, 10);
+        Annealing<ScheduleDif, true> an(x == 0 ? greedy_initialize() : periodic_initialize(x), 1600, 500);
         std::cerr << an.run(rem_time / annealing_num) << " iterations\n";
         assert(an.cur.score == an.cur.calc_score());
         if (chmax(ma, an.best_state.score)) ans = std::move(an.best_state);
