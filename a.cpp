@@ -139,23 +139,9 @@ struct ScheduleDif : Schedule {
     // a[d] <- k
     void change1(Int d, Int k) {
         if (a[d] == k) return;
-        Int prv_k = a[d];
+        ds[a[d]].erase(std::lower_bound(ALL(ds[a[d]]), d));
+        ds[k].insert(std::lower_bound(ALL(ds[k]), d), d);
         a[d] = k;
-        // erase d from ds[prv_k]
-        {
-            std::vector<Int>& v = ds[prv_k];
-            Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
-            // assert(v[i] == d);
-            v.erase(v.begin() + i);
-        }
-        // insert d into ds[k]
-        {
-            std::vector<Int>& v = ds[k];
-            Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
-            // assert(v[i] != d);
-            v.insert(v.begin() + i, d);
-            // assert(v[i] == d);
-        }
     }
 };
 
@@ -208,8 +194,7 @@ template <class State, bool use_dif = true> struct Annealing {
         if (rnd() % 2 == 0) {
             // change 1 day
             Int d = rnd() % D, k = rnd() % K;
-            Int prv_k = cur.a[d];
-            while (k == prv_k) k = rnd() % K;
+            while (k == cur.a[d]) k = rnd() % K;
             Int score_dif = cur.score_dif(d, k);
             bool is_update = !should_stay(score_dif, cur_time, time_lim);
             if (is_update) {
@@ -288,7 +273,7 @@ signed main() {
         filename += ".txt";
         std::ifstream in(filename);
         std::cin.rdbuf(in.rdbuf());
-        score += std::max(0, solve());
+        score += std::max<Int>(0, solve());
     }
     std::cerr << "sum : " << score << std::endl;
 #else
