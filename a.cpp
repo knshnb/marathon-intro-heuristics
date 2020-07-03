@@ -164,8 +164,9 @@ template <class State, bool use_dif = true> struct Annealing {
             }
         } else {
             // swap 2 days
-            Int dif = rnd() % 15;
+            Int dif = rnd() % 15 + 1;
             Int d1 = rnd() % (D - dif), d2 = d1 + dif;
+            while (cur.a[d1] == cur.a[d2]) dif = rnd() % 15 + 1, d1 = rnd() % (D - dif), d2 = d1 + dif;
             Int prv_k1 = cur.a[d1], prv_k2 = cur.a[d2];
             cur.change1(d1, prv_k2);
             cur.change1(d2, prv_k1);
