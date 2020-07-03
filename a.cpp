@@ -193,13 +193,11 @@ template <class State, bool use_dif = true> struct Annealing {
             }
         }
     }
-    void run(double time_lim) {
-        REP(t, 1e9) {
+    // return iteration num until time limit
+    Int run(double time_lim) {
+        for (Int t = 0;; t++) {
             double cur_time = timer();
-            if (cur_time > time_lim) {
-                dump(t, "iterations");
-                break;
-            }
+            if (cur_time > time_lim) return t;
             Int prv_score = cur.score;
             if (use_dif) {
                 update_by_dif(cur_time, time_lim);
@@ -221,8 +219,8 @@ Int solve() {
     REP(i, D) REP(j, K) std::cin >> s[i][j];
 
     // local search
-    Annealing<ScheduleDif, true> an(greedy_initialize(), 500, 10);
-    an.run(TIME_LIMIT - timer());
+    Annealing<ScheduleDif, true> an(greedy_initialize(), 4000, 10);
+    std::cerr << an.run(TIME_LIMIT - timer()) << " iterations\n";
 
     // output
     for (Int x : an.cur.a) std::cout << x + 1 << "\n";
