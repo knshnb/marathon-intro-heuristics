@@ -83,7 +83,9 @@ struct ScheduleDif : Schedule {
     ScheduleDif() {}
     ScheduleDif(const Schedule& sc) {
         score = sc.score, a = sc.a;
+        REP(k, K) ds[k].push_back(-1);
         REP(d, D) ds[sc.a[d]].push_back(d);
+        REP(k, K) ds[k].push_back(D);
     }
     Int balance(Int d, Int prv, Int nxt) const {
         auto calc = [](Int dif) { return dif * (dif - 1) / 2; };
@@ -93,19 +95,19 @@ struct ScheduleDif : Schedule {
         if (a[d] == k) return 0;
         Int ret = 0;
         ret += s[d][k] - s[d][a[d]];
-        // erase d from st.ds[prv_k]
+        // erase d from ds[prv_k]
         {
             const std::vector<Int>& v = ds[a[d]];
             Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
             assert(v[i] == d);
-            ret += balance(d, i - 1 < 0 ? -1 : v[i - 1], i + 1 >= v.size() ? D : v[i + 1]) * c[a[d]];
+            ret += balance(d, v[i - 1], v[i + 1]) * c[a[d]];
         }
-        // insert d into st.ds[k]
+        // insert d into ds[k]
         {
             const std::vector<Int>& v = ds[k];
             Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
             assert(i == v.size() || v[i] > d);
-            ret -= balance(d, i - 1 < 0 ? -1 : v[i - 1], i >= v.size() ? D : v[i]) * c[k];
+            ret -= balance(d, v[i - 1], v[i]) * c[k];
         }
         return ret;
     }
@@ -115,22 +117,22 @@ struct ScheduleDif : Schedule {
         Int prv_k = a[d];
         a[d] = k;
         score += s[d][k] - s[d][prv_k];
-        // erase d from st.ds[prv_k]
+        // erase d from ds[prv_k]
         {
             std::vector<Int>& v = ds[prv_k];
             Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
-            score += balance(d, i - 1 < 0 ? -1 : v[i - 1], i + 1 >= v.size() ? D : v[i + 1]) * c[prv_k];
+            score += balance(d, v[i - 1], v[i + 1]) * c[prv_k];
             // assert(v[i] == d);
             v.erase(v.begin() + i);
         }
-        // insert d into st.ds[k]
+        // insert d into ds[k]
         {
             std::vector<Int>& v = ds[k];
             Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
             // assert(v[i] != d);
             v.insert(v.begin() + i, d);
             // assert(v[i] == d);
-            score -= balance(d, i - 1 < 0 ? -1 : v[i - 1], i + 1 >= v.size() ? D : v[i + 1]) * c[k];
+            score -= balance(d, v[i - 1], v[i + 1]) * c[k];
         }
     }
 };
