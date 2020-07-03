@@ -1,5 +1,6 @@
 #include <algorithm>
 #include <array>
+#include <cassert>
 #include <chrono>
 #include <fstream>
 #include <iomanip>
@@ -84,34 +85,52 @@ struct ScheduleDif : Schedule {
         score = sc.score, a = sc.a;
         REP(d, D) ds[sc.a[d]].push_back(d);
     }
+    Int balance(Int d, Int prv, Int nxt) const {
+        auto calc = [](Int dif) { return dif * (dif - 1) / 2; };
+        return calc(d - prv) + calc(nxt - d) - calc(nxt - prv);
+    }
+    Int score_dif(Int d, Int k) const {
+        if (a[d] == k) return 0;
+        Int ret = 0;
+        ret += s[d][k] - s[d][a[d]];
+        // erase d from st.ds[prv_k]
+        {
+            const std::vector<Int>& v = ds[a[d]];
+            Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
+            assert(v[i] == d);
+            ret += balance(d, i - 1 < 0 ? -1 : v[i - 1], i + 1 >= v.size() ? D : v[i + 1]) * c[a[d]];
+        }
+        // insert d into st.ds[k]
+        {
+            const std::vector<Int>& v = ds[k];
+            Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
+            assert(i == v.size() || v[i] > d);
+            ret -= balance(d, i - 1 < 0 ? -1 : v[i - 1], i >= v.size() ? D : v[i]) * c[k];
+        }
+        return ret;
+    }
     // a[d] <- k
     void change1(Int d, Int k) {
         if (a[d] == k) return;
         Int prv_k = a[d];
         a[d] = k;
         score += s[d][k] - s[d][prv_k];
-        auto balance = [&d](auto& v, Int i) {
-            auto calc = [](Int dif) { return dif * (dif - 1) / 2; };
-            Int prv = i - 1 < 0 ? -1 : v[i - 1];
-            Int nxt = i + 1 >= v.size() ? D : v[i + 1];
-            return calc(d - prv) + calc(nxt - d) - calc(nxt - prv);
-        };
         // erase d from st.ds[prv_k]
         {
             std::vector<Int>& v = ds[prv_k];
-            auto i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
-            score += balance(v, i) * c[prv_k];
+            Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
+            score += balance(d, i - 1 < 0 ? -1 : v[i - 1], i + 1 >= v.size() ? D : v[i + 1]) * c[prv_k];
             // assert(v[i] == d);
             v.erase(v.begin() + i);
         }
         // insert d into st.ds[k]
         {
             std::vector<Int>& v = ds[k];
-            auto i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
+            Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
             // assert(v[i] != d);
             v.insert(v.begin() + i, d);
             // assert(v[i] == d);
-            score -= balance(v, i) * c[k];
+            score -= balance(d, i - 1 < 0 ? -1 : v[i - 1], i + 1 >= v.size() ? D : v[i + 1]) * c[k];
         }
     }
 };
