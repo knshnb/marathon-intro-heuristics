@@ -141,12 +141,10 @@ struct ScheduleDif : Schedule {
         if (a[d] == k) return;
         Int prv_k = a[d];
         a[d] = k;
-        score += s[d][k] - s[d][prv_k];
         // erase d from ds[prv_k]
         {
             std::vector<Int>& v = ds[prv_k];
             Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
-            score += balance(d, v[i - 1], v[i + 1]) * c[prv_k];
             // assert(v[i] == d);
             v.erase(v.begin() + i);
         }
@@ -157,7 +155,6 @@ struct ScheduleDif : Schedule {
             // assert(v[i] != d);
             v.insert(v.begin() + i, d);
             // assert(v[i] == d);
-            score -= balance(d, v[i - 1], v[i + 1]) * c[k];
         }
     }
 };
@@ -215,9 +212,8 @@ template <class State, bool use_dif = true> struct Annealing {
             Int score_dif = cur.score_dif(d, k);
             bool is_update = !should_stay(score_dif, cur_time, time_lim);
             if (is_update) {
-                score_dif += cur.score;
                 cur.change1(d, k);
-                // assert(score_dif == cur.score);
+                cur.score += score_dif;
             }
             return is_update;
         } else {
@@ -228,11 +224,10 @@ template <class State, bool use_dif = true> struct Annealing {
             Int score_dif = cur.score_dif_swap(d1, d2);
             bool is_update = !should_stay(score_dif, cur_time, time_lim);
             if (is_update) {
-                score_dif += cur.score;
                 Int prv_k1 = cur.a[d1], prv_k2 = cur.a[d2];
                 cur.change1(d1, prv_k2);
                 cur.change1(d2, prv_k1);
-                // assert(score_dif == cur.score);
+                cur.score += score_dif;
             }
             return is_update;
         }
