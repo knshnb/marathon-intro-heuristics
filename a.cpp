@@ -145,23 +145,26 @@ template <class State, bool use_dif = true> struct Annealing {
         double prob = std::exp(score_dif / temperature);
         return prob * INF < rnd() % INF;
     }
-    void update(double cur_time, double time_lim) {
+    bool update(double cur_time, double time_lim) {
         State nxt = cur.generate_neighbor();
-        if (!should_stay(nxt.calc_score() - cur.calc_score(), cur_time, time_lim)) {
+        bool is_update = !should_stay(nxt.calc_score() - cur.calc_score(), cur_time, time_lim);
+        if (is_update) {
             cur = std::move(nxt);
         }
+        return is_update;
     }
-    void update_by_dif(double cur_time, double time_lim) {
+    bool update_by_dif(double cur_time, double time_lim) {
         Int prv_score = cur.score;
         if (rnd() % 2 == 0) {
             // change 1 day
             Int d = rnd() % D, k = rnd() % K;
             Int prv_k = cur.a[d];
             while (k == prv_k) k = rnd() % K;
-            cur.change1(d, k);
-            if (should_stay(cur.score - prv_score, cur_time, time_lim)) {
-                cur.change1(d, prv_k);
+            bool is_update = !should_stay(cur.score_dif(d, k), cur_time, time_lim);
+            if (is_update) {
+                cur.change1(d, k);
             }
+            return is_update;
         } else {
             // swap 2 days
             Int dif = rnd() % 15 + 1;
@@ -170,10 +173,12 @@ template <class State, bool use_dif = true> struct Annealing {
             Int prv_k1 = cur.a[d1], prv_k2 = cur.a[d2];
             cur.change1(d1, prv_k2);
             cur.change1(d2, prv_k1);
-            if (should_stay(cur.score - prv_score, cur_time, time_lim)) {
+            bool is_update = !should_stay(cur.score - prv_score, cur_time, time_lim);
+            if (!is_update) {
                 cur.change1(d1, prv_k1);
                 cur.change1(d2, prv_k2);
             }
+            return is_update;
         }
     }
     // return iteration num until time limit
