@@ -1,5 +1,12 @@
-#include <bits/stdc++.h>  // clang-format off
-using Int = int;
+#include <algorithm>
+#include <array>
+#include <chrono>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <random>
+#include <vector>
+using Int = int;  // clang-format off
 #define REP_(i, a_, b_, a, b, ...) for (Int i = (a), lim##i = (b); i < lim##i; i++)
 #define REP(i, ...) REP_(i, __VA_ARGS__, __VA_ARGS__, 0, __VA_ARGS__)
 #define ALL(v) std::begin(v), std::end(v)
