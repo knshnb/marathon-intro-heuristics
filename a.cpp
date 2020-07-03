@@ -44,7 +44,7 @@ constexpr Int D = 365;
 constexpr Int K = 26;
 Int s[D][K], c[K];
 Int sum;
-constexpr double TIME_LIMIT = 1950;
+constexpr double TIME_LIMIT = 1980;
 
 struct Schedule {
     std::array<Int, D> a;
@@ -123,7 +123,7 @@ Schedule greedy_initialize() {
     REP(d, D) {
         Int ma = -1, use = -1;
         REP(k, K) {
-            Int ad = s[d][k] + c[k] * (d - last[k]);
+            Int ad = s[d][k] + c[k] * (d - last[k]) + c[k] * 15;  // heuristic value function
             if (chmax(ma, ad)) use = k;
         }
         ret.a[d] = use;
@@ -201,7 +201,7 @@ Int solve() {
     REP(i, D) REP(j, K) std::cin >> s[i][j];
 
     // local search
-    Annealing<ScheduleDif, true> an(greedy_initialize(), 4000, 10);
+    Annealing<ScheduleDif, true> an(greedy_initialize(), 1500, 10);
     std::cerr << an.run(TIME_LIMIT - timer()) << " iterations\n";
 
     // output
