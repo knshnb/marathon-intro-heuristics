@@ -133,24 +133,6 @@ Schedule greedy_initialize() {
     return ret;
 }
 
-std::vector<Schedule> beam_search(Int width = 3) {
-    std::vector<Schedule> schedules = {Schedule()};
-    REP(d, D) {
-        std::vector<Schedule> nxts;
-        REP(k, K) {
-            for (Schedule sc : schedules) {
-                sc.a[d] = k;
-                sc.score = sc.calc_score(d + 1);
-                nxts.push_back(sc);
-                std::sort(nxts.begin(), nxts.end(), [](Schedule& a, Schedule& b) { return a.score > b.score; });
-                if (nxts.size() > width) nxts.pop_back();
-            }
-        }
-        std::swap(schedules, nxts);
-    }
-    return schedules;
-}
-
 template <class State, bool use_dif = true> struct Annealing {
     constexpr static Int INF = 1e9;
     State cur;
