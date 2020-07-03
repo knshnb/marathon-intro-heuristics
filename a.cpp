@@ -99,20 +99,20 @@ struct ScheduleDif : Schedule {
         {
             const std::vector<Int>& v = ds[a[d]];
             Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
-            assert(v[i] == d);
+            // assert(v[i] == d);
             ret += balance(d, v[i - 1], v[i + 1]) * c[a[d]];
         }
         // insert d into ds[k]
         {
             const std::vector<Int>& v = ds[k];
             Int i = std::lower_bound(v.begin(), v.end(), d) - v.begin();
-            assert(i == v.size() || v[i] > d);
+            // assert(i == v.size() || v[i] > d);
             ret -= balance(d, v[i - 1], v[i]) * c[k];
         }
         return ret;
     }
     Int score_dif_swap(Int d1, Int d2) const {
-        assert(d1 < d2);
+        // assert(d1 < d2);
         Int k1 = a[d1], k2 = a[d2];
         Int ret = 0;
         ret += (s[d1][k2] - s[d1][k1]) + (s[d2][k1] - s[d2][k2]);
