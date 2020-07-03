@@ -186,6 +186,7 @@ Schedule periodic_initialize(Int offset = 0) {
 template <class State, bool use_dif = true> struct Annealing {
     constexpr static Int INF = 1e9;
     State cur;
+    State best_state;
     const double start_temp, end_temp;
     Timer timer;
     Annealing(State state, double start_temp_ = 50, double end_temp_ = 10)
@@ -243,6 +244,7 @@ template <class State, bool use_dif = true> struct Annealing {
             } else {
                 update(cur_time, time_lim);
             }
+            if (cur.score > best_state.score) best_state = cur;
             if (prv_score != cur.score) dump(t, prv_score, cur.score);
         }
     }
@@ -266,7 +268,7 @@ Int solve() {
         Annealing<ScheduleDif, true> an(x == 0 ? greedy_initialize() : periodic_initialize(x), 1500, 10);
         std::cerr << an.run(rem_time / annealing_num) << " iterations\n";
         assert(an.cur.score == an.cur.calc_score());
-        if (chmax(ma, an.cur.score)) ans = std::move(an.cur);
+        if (chmax(ma, an.best_state.score)) ans = std::move(an.best_state);
     }
 
     // output
