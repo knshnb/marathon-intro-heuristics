@@ -111,6 +111,31 @@ struct ScheduleDif : Schedule {
         }
         return ret;
     }
+    Int score_dif_swap(Int d1, Int d2) const {
+        assert(d1 < d2);
+        Int k1 = a[d1], k2 = a[d2];
+        Int ret = 0;
+        ret += (s[d1][k2] - s[d1][k1]) + (s[d2][k1] - s[d2][k2]);
+        {
+            const std::vector<Int>& v = ds[k1];
+            // erase d1 from ds[k1]
+            Int i1 = std::lower_bound(v.begin(), v.end(), d1) - v.begin();
+            ret += balance(d1, v[i1 - 1], v[i1 + 1]) * c[k1];
+            // insert d2 into ds[k1]
+            Int i2 = std::lower_bound(v.begin(), v.end(), d2) - v.begin();
+            ret -= balance(d2, v[i2 - 1] == d1 ? v[i2 - 2] : v[i2 - 1], v[i2]) * c[k1];
+        }
+        {
+            const std::vector<Int>& v = ds[k2];
+            // insert d1 into ds[k2]
+            Int i1 = std::lower_bound(v.begin(), v.end(), d1) - v.begin();
+            ret -= balance(d1, v[i1 - 1], v[i1] == d2 ? v[i1 + 1] : v[i1]) * c[k2];
+            // erase d2 from ds[k2]
+            Int i2 = std::lower_bound(v.begin(), v.end(), d2) - v.begin();
+            ret += balance(d2, v[i2 - 1], v[i2 + 1]) * c[k2];
+        }
+        return ret;
+    }
     // a[d] <- k
     void change1(Int d, Int k) {
         if (a[d] == k) return;
@@ -175,15 +200,17 @@ template <class State, bool use_dif = true> struct Annealing {
         return is_update;
     }
     bool update_by_dif(double cur_time, double time_lim) {
-        Int prv_score = cur.score;
         if (rnd() % 2 == 0) {
             // change 1 day
             Int d = rnd() % D, k = rnd() % K;
             Int prv_k = cur.a[d];
             while (k == prv_k) k = rnd() % K;
-            bool is_update = !should_stay(cur.score_dif(d, k), cur_time, time_lim);
+            Int score_dif = cur.score_dif(d, k);
+            bool is_update = !should_stay(score_dif, cur_time, time_lim);
             if (is_update) {
+                score_dif += cur.score;
                 cur.change1(d, k);
+                // assert(score_dif == cur.score);
             }
             return is_update;
         } else {
@@ -191,13 +218,14 @@ template <class State, bool use_dif = true> struct Annealing {
             Int dif = rnd() % 15 + 1;
             Int d1 = rnd() % (D - dif), d2 = d1 + dif;
             while (cur.a[d1] == cur.a[d2]) dif = rnd() % 15 + 1, d1 = rnd() % (D - dif), d2 = d1 + dif;
-            Int prv_k1 = cur.a[d1], prv_k2 = cur.a[d2];
-            cur.change1(d1, prv_k2);
-            cur.change1(d2, prv_k1);
-            bool is_update = !should_stay(cur.score - prv_score, cur_time, time_lim);
-            if (!is_update) {
-                cur.change1(d1, prv_k1);
-                cur.change1(d2, prv_k2);
+            Int score_dif = cur.score_dif_swap(d1, d2);
+            bool is_update = !should_stay(score_dif, cur_time, time_lim);
+            if (is_update) {
+                score_dif += cur.score;
+                Int prv_k1 = cur.a[d1], prv_k2 = cur.a[d2];
+                cur.change1(d1, prv_k2);
+                cur.change1(d2, prv_k1);
+                // assert(score_dif == cur.score);
             }
             return is_update;
         }
